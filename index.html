@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HTML Content Processor</title>
     <style>
+        /* Previous styles remain the same */
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
@@ -63,10 +64,10 @@
         .d-inline {
             display: inline;
         }
-        .output-container {
+        .input-container, .output-container {
             position: relative;
         }
-        .copy-button {
+        .copy-button, .paste-button {
             position: absolute;
             top: 15px;
             right: 10px;
@@ -76,7 +77,7 @@
             border-radius: 4px;
             width: auto;
         }
-        .copy-button:hover {
+        .copy-button:hover, .paste-button:hover {
             background: #ddd;
         }
         .toast {
@@ -90,6 +91,7 @@
             display: none;
             animation: fadeIn 0.3s, fadeOut 0.3s 1.7s;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
         }
         @keyframes fadeIn {
             from {opacity: 0;}
@@ -99,14 +101,25 @@
             from {opacity: 1;}
             to {opacity: 0;}
         }
+        /* New styles for character count */
+        .char-count {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>HTML Content Processor</h1>
         
-        <label for="input">Input HTML:</label>
-        <textarea id="input" placeholder="Paste your HTML content here..."></textarea>
+        <div class="input-container">
+            <label for="input">Input HTML:</label>
+            <button class="paste-button" onclick="pasteInput()">Paste</button>
+            <textarea id="input" placeholder="Paste your HTML content here..." oninput="updateCharCount('input')"></textarea>
+            <div id="input-char-count" class="char-count">Characters: 0</div>
+        </div>
         
         <div class="button-group">
             <button onclick="processContent()">Process HTML</button>
@@ -117,6 +130,7 @@
             <label for="output">Output HTML:</label>
             <button class="copy-button" onclick="copyOutput()">Copy</button>
             <textarea id="output" readonly></textarea>
+            <div id="output-char-count" class="char-count">Characters: 0</div>
         </div>
         
         <label>Preview:</label>
@@ -126,37 +140,55 @@
     <div id="toast" class="toast">Copied to clipboard!</div>
 
     <script>
+        function updateCharCount(type) {
+            const element = document.getElementById(type);
+            const count = element.value.length;
+            document.getElementById(`${type}-char-count`).textContent = `Characters: ${count}`;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+
+        async function pasteInput() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('input').value = text;
+                updateCharCount('input');
+                showToast('Text pasted from clipboard!');
+            } catch (err) {
+                showToast('Failed to read clipboard');
+            }
+        }
+
         function processContent() {
-            // Get input content
             const input = document.getElementById('input').value;
             
-            // Create a temporary div to parse HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = input;
             
-            // Remove ul tags and their content
             const ulElements = tempDiv.getElementsByTagName('ul');
             while (ulElements.length > 0) {
                 ulElements[0].remove();
             }
             
-            // Get text content excluding ul
             let content = tempDiv.innerHTML;
-            
-            // Remove default p tags but preserve content
             content = content.replace(/<p>/g, '').replace(/<\/p>/g, '');
             
-            // Split content while preserving strong tags
             const strongRegex = /<strong>.*?<\/strong>/g;
             const strongMatches = content.match(strongRegex) || [];
             let processedContent = content;
             
-            // Replace strong tags with placeholders
             strongMatches.forEach((match, index) => {
                 processedContent = processedContent.replace(match, `___STRONG${index}___`);
             });
             
-            // Split into roughly equal parts
             const words = processedContent.split(' ');
             const wordsPerPart = Math.ceil(words.length / 4);
             const parts = [];
@@ -165,7 +197,6 @@
                 parts.push(words.slice(i, i + wordsPerPart).join(' '));
             }
             
-            // Restore strong tags
             let finalContent = parts.map(part => {
                 let processed = part;
                 strongMatches.forEach((match, index) => {
@@ -174,31 +205,24 @@
                 return `<p class="d-inline">${processed}</p>`;
             }).join('&nbsp;');
             
-            // Set output and preview
             document.getElementById('output').value = finalContent;
             document.getElementById('preview').innerHTML = finalContent;
+            updateCharCount('output');
         }
 
         function copyOutput() {
             const output = document.getElementById('output');
             output.select();
             document.execCommand('copy');
-            
-            // Show toast
-            const toast = document.getElementById('toast');
-            toast.style.display = 'block';
-            
-            // Hide toast after 2 seconds
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 2000);
+            showToast('Copied to clipboard!');
         }
 
         function clearContent() {
-            // Clear input, output and preview
             document.getElementById('input').value = '';
             document.getElementById('output').value = '';
             document.getElementById('preview').innerHTML = '';
+            updateCharCount('input');
+            updateCharCount('output');
         }
     </script>
 </body>
