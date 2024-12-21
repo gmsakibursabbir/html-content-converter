@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Content Processor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button {
+            background: #0066ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+        }
+        button:hover {
+            background: #0052cc;
+        }
+        .preview {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+        .d-inline {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTML Content Processor</h1>
+        
+        <label for="input">Input HTML:</label>
+        <textarea id="input" placeholder="Paste your HTML content here..."></textarea>
+        
+        <button onclick="processContent()">Process HTML</button>
+        
+        <label for="output">Output HTML:</label>
+        <textarea id="output" readonly></textarea>
+        
+        <label>Preview:</label>
+        <div id="preview" class="preview"></div>
+    </div>
+
+    <script>
+        function processContent() {
+            // Get input content
+            const input = document.getElementById('input').value;
+            
+            // Create a temporary div to parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = input;
+            
+            // Remove ul tags and their content
+            const ulElements = tempDiv.getElementsByTagName('ul');
+            while (ulElements.length > 0) {
+                ulElements[0].remove();
+            }
+            
+            // Get text content excluding ul
+            let content = tempDiv.innerHTML;
+            
+            // Remove default p tags but preserve content
+            content = content.replace(/<p>/g, '').replace(/<\/p>/g, '');
+            
+            // Split content while preserving strong tags
+            const strongRegex = /<strong>.*?<\/strong>/g;
+            const strongMatches = content.match(strongRegex) || [];
+            let processedContent = content;
+            
+            // Replace strong tags with placeholders
+            strongMatches.forEach((match, index) => {
+                processedContent = processedContent.replace(match, `___STRONG${index}___`);
+            });
+            
+            // Split into roughly equal parts
+            const words = processedContent.split(' ');
+            const wordsPerPart = Math.ceil(words.length / 4);
+            const parts = [];
+            
+            for (let i = 0; i < words.length; i += wordsPerPart) {
+                parts.push(words.slice(i, i + wordsPerPart).join(' '));
+            }
+            
+            // Restore strong tags
+            let finalContent = parts.map(part => {
+                let processed = part;
+                strongMatches.forEach((match, index) => {
+                    processed = processed.replace(`___STRONG${index}___`, match);
+                });
+                return `<p class="d-inline">${processed}</p>`;
+            }).join('&nbsp;');
+            
+            // Set output and preview
+            document.getElementById('output').value = finalContent;
+            document.getElementById('preview').innerHTML = finalContent;
+        }
+    </script>
+</body>
+</html>
