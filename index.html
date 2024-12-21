@@ -53,6 +53,42 @@
         .d-inline {
             display: inline;
         }
+        .output-container {
+            position: relative;
+        }
+        .copy-button {
+            position: absolute;
+            top: 15px;
+            right: 10px;
+            background: #eee;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            width: auto;
+        }
+        .copy-button:hover {
+            background: #ddd;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            display: none;
+            animation: fadeIn 0.3s, fadeOut 0.3s 1.7s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        @keyframes fadeOut {
+            from {opacity: 1;}
+            to {opacity: 0;}
+        }
     </style>
 </head>
 <body>
@@ -64,12 +100,17 @@
         
         <button onclick="processContent()">Process HTML</button>
         
-        <label for="output">Output HTML:</label>
-        <textarea id="output" readonly></textarea>
+        <div class="output-container">
+            <label for="output">Output HTML:</label>
+            <button class="copy-button" onclick="copyOutput()">Copy</button>
+            <textarea id="output" readonly></textarea>
+        </div>
         
         <label>Preview:</label>
         <div id="preview" class="preview"></div>
     </div>
+
+    <div id="toast" class="toast">Copied to clipboard!</div>
 
     <script>
         function processContent() {
@@ -123,6 +164,21 @@
             // Set output and preview
             document.getElementById('output').value = finalContent;
             document.getElementById('preview').innerHTML = finalContent;
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            output.select();
+            document.execCommand('copy');
+            
+            // Show toast
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            
+            // Hide toast after 2 seconds
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
         }
     </script>
 </body>
