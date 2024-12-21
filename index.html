@@ -26,6 +26,11 @@
             border-radius: 4px;
             font-family: monospace;
         }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
         button {
             background: #0066ff;
             color: white;
@@ -33,11 +38,16 @@
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
-            margin: 10px 0;
-            width: 100%;
+            flex: 1;
         }
         button:hover {
             background: #0052cc;
+        }
+        button.clear-btn {
+            background: #dc3545;
+        }
+        button.clear-btn:hover {
+            background: #c82333;
         }
         .preview {
             margin-top: 20px;
@@ -98,7 +108,10 @@
         <label for="input">Input HTML:</label>
         <textarea id="input" placeholder="Paste your HTML content here..."></textarea>
         
-        <button onclick="processContent()">Process HTML</button>
+        <div class="button-group">
+            <button onclick="processContent()">Process HTML</button>
+            <button onclick="clearContent()" class="clear-btn">Clear</button>
+        </div>
         
         <div class="output-container">
             <label for="output">Output HTML:</label>
@@ -179,6 +192,13 @@
             setTimeout(() => {
                 toast.style.display = 'none';
             }, 2000);
+        }
+
+        function clearContent() {
+            // Clear input, output and preview
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('preview').innerHTML = '';
         }
     </script>
 </body>
